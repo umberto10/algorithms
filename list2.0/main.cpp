@@ -15,6 +15,14 @@
 #include "mquick.h"
 #include "values.h"
 
+bool less(int a, int b) {
+  return a < b;
+}
+
+bool greater(int a, int b) {
+  return a > b;
+}
+
 void process(int argc, char** argv) {
   char* type;
   int desc = false;
@@ -22,10 +30,7 @@ void process(int argc, char** argv) {
   int len, data_only = 0;
   int k_times;
   char* doc;
-  
 
-  struct timespec before, after;
-  
   const char* short_opts = "t:d:a:s:m:h:k";
 
   const option long_opts[] = {
@@ -74,13 +79,14 @@ void process(int argc, char** argv) {
 	std::cin >> len;
 
 	std::vector<int> res;
+	
 	/*
 	  int tmp;
 	  for (int i = 0; i < len; i++) {
 	  std::cin >> tmp;
 	  res.push_back(tmp);
 	  }
-	  1	*/
+	*/
 	
 	std::srand (std::time(nullptr));
 	
@@ -99,45 +105,56 @@ void process(int argc, char** argv) {
   
 	switch(type[0]) {
 	case 's':
-	  clock_gettime(CLOCK_MONOTONIC, &before); 
-	  asc ? select_sort<>(res, std::function<bool(int,int)>(std::less<>())) : select_sort<>(res, std::function<bool(int,int)>(std::greater<>()));
-	  clock_gettime(CLOCK_MONOTONIC, &after);
+	  {
+	  auto beforeS = std::chrono::steady_clock::now();
+	  asc ? select_sort<>(res,&less) : select_sort<>(res, &greater);
+	  auto afterS = std::chrono::steady_clock::now();
 
 	  std::cout << "Select sort with \033[35m" << compares << "\033[0m compares with: " << swaps << " swapas in:" << std::endl;
-	  std::cout << "sec: \033[32m"  << after.tv_sec - before.tv_sec << "\033[0m nano_sec: \033[33m"<< after.tv_nsec - before.tv_nsec << "\033[0m" << std::endl;
+	  std::cout << "sec: \033[32m"  << std::chrono::duration_cast<std::chrono::milliseconds>(afterS-beforeS).count() << "\033[0m nano_sec: \033[33m" << std::endl;
 	  break;
+	  }
+	  
 	case 'i':
-	  clock_gettime(CLOCK_MONOTONIC, &before);
-	  asc ? insert_sort<>(res, 0, res.size(), std::function<bool(int,int)>(std::greater<>())) : insert_sort<>(res, 0, res.size(), std::function<bool(int,int)>(std::less<>()));
-	  clock_gettime(CLOCK_MONOTONIC, &after);
+	  {
+	  auto beforeI = std::chrono::steady_clock::now();
+	  asc ? insert_sort<>(res, 0, res.size(), &greater) : insert_sort<>(res, 0, res.size(), &less);
+	  auto afterI = std::chrono::steady_clock::now();
 
 	  std::cout << "Insert sort with \033[35m" << compares << "\033[0m compares with: " << swaps << " swaps in:" << std::endl;
-	  std::cout << "sec: \033[32m"  << after.tv_sec - before.tv_sec << "\033[0m nano_sec: \033[33m"<< after.tv_nsec - before.tv_nsec << "\033[0m" << std::endl;
+	  std::cout << "sec: \033[32m"  << std::chrono::duration_cast<std::chrono::milliseconds>(afterI-beforeI).count() << "\033[0m" << std::endl;
 	  break;
+	  }
 	case 'q':
-	  clock_gettime(CLOCK_MONOTONIC, &before);
-   	  asc ? QuickSort<>(res, 0, len-1, std::function<bool(int,int)>(std::less<>())) : QuickSort<>(res, 0, len-1, std::function<bool(int,int)>(std::greater<>()));
-	  clock_gettime(CLOCK_MONOTONIC, &after);
+	  {
+	  auto beforeQ = std::chrono::steady_clock::now();
+   	  asc ? QuickSort<>(res, 0, len-1, &less) : QuickSort<>(res, 0, len-1, &greater);
+	  auto afterQ = std::chrono::steady_clock::now();
 
 	  std::cout << "Quick sort with \033[35m" << compares << "\033[0m compares with: " << swaps << " swaps in:" << std::endl;
-	  std::cout << "sec: \033[32m"  << after.tv_sec - before.tv_sec << "\033[0m nano_sec: \033[33m"<< after.tv_nsec - before.tv_nsec << "\033[0m" << std::endl;
+	  std::cout << "msec: \033[32m"  << std::chrono::duration_cast<std::chrono::milliseconds>(afterQ-beforeQ).count() << "\033[0mm" << std::endl;
 	  break;
+	  }
 	case 'h':
-	  clock_gettime(CLOCK_MONOTONIC, &before);
-	  asc ?  heap_sort<>(res, res.size(), std::function<bool(int,int)>(std::greater<>())) :heap_sort<>(res, len, std::function<bool(int,int)>(std::less<>()));
-	  clock_gettime(CLOCK_MONOTONIC, &after);
+	  {
+	  auto beforeH = std::chrono::steady_clock::now();
+	  asc ?  heap_sort<>(res, res.size(), &greater) :heap_sort<>(res, len, &less);
+	  auto afterH = std::chrono::steady_clock::now();
 
 	  std::cout << "Heap sort with \033[35m" << compares << "\033[0m compares with: " << swaps << " swaps in:" << std::endl;
-	  std::cout << "sec: \033[32m"  << after.tv_sec - before.tv_sec << "\033[0m nano_sec: \033[33m"<< after.tv_nsec - before.tv_nsec << "\033[0m" << std::endl;
+	  std::cout << "sec: \033[32m"  << std::chrono::duration_cast<std::chrono::milliseconds>(afterH-beforeH).count() << "\033[0m" << std::endl;
 	  break;
+	  }
 	case 'm':
-	  clock_gettime(CLOCK_MONOTONIC, &before);
-	  asc ? mQuickSort<>(res, 0, len-1, std::function<bool(int,int)>(std::greater<>())) : mQuickSort<>(res, 0, len-1, std::function<bool(int,int)>(std::less<>()));
-	  clock_gettime(CLOCK_MONOTONIC, &after);
+	  {
+	  auto beforeM = std::chrono::steady_clock::now();
+	  asc ? mQuickSort<>(res, 0, len-1, &greater) : mQuickSort<>(res, 0, len-1, &less);
+	  auto afterM = std::chrono::steady_clock::now();
 	  
 	  std::cout << "mQuick sort with \033[35m" << compares << "\033[0m compares with: " << swaps << " swaps in:" << std::endl;
-	  std::cout << "sec: \033[32m"  << after.tv_sec - before.tv_sec << "\033[0m nano_sec: \033[33m"<< after.tv_nsec - before.tv_nsec << "\033[0m" << std::endl;	 
+	  std::cout << "sec: \033[32m"  << std::chrono::duration_cast<std::chrono::milliseconds>(afterM-beforeM).count() << "\033[0m" << std::endl;	 
 	  break;
+	  }
 	}
   
 	//std::cout << std::endl;
@@ -187,7 +204,7 @@ void process(int argc, char** argv) {
 		  ::compares = 0;
 		  ::swaps = 0;
 		  auto beforeS = std::chrono::steady_clock::now();
-		  select_sort<>(s, std::function<bool(int,int)>(std::less<>()));
+		  select_sort<>(s, &less);
 		  auto afterS = std::chrono::steady_clock::now();
 
 		  if (::verbose_d)
@@ -200,7 +217,7 @@ void process(int argc, char** argv) {
 		  ::compares = 0;
 		  ::swaps = 0;
 		  beforeS = std::chrono::steady_clock::now();
-		  insert_sort<>(i, 0,i.size(), std::function<bool(int,int)>(std::greater<>()));		 
+		  insert_sort<>(i, 0,i.size(), &greater);		 
 		  afterS = std::chrono::steady_clock::now();
 
 		  if (::verbose_d)
@@ -212,7 +229,7 @@ void process(int argc, char** argv) {
 		  ::compares = 0;
 		  ::swaps = 0;
 		  beforeS = std::chrono::steady_clock::now();
-		  heap_sort<>(h, h.size(), std::function<bool(int,int)>(std::greater<>()));
+		  heap_sort<>(h, h.size(), &greater);
 		  afterS = std::chrono::steady_clock::now();
 		  
 		  if (::verbose)
@@ -224,7 +241,7 @@ void process(int argc, char** argv) {
 		  ::compares = 0;
 		  ::swaps = 0;
 		  beforeS = std::chrono::steady_clock::now();
-		  QuickSort<>(q, 0, q.size()-1, std::function<bool(int,int)>(std::less<>()));
+		  QuickSort<>(q, 0, q.size()-1, &less);
 		  afterS = std::chrono::steady_clock::now();
 
 		  if (::verbose_d)
@@ -235,7 +252,7 @@ void process(int argc, char** argv) {
 		  ::compares = 0;
 		  ::swaps = 0;
 		  beforeS = std::chrono::steady_clock::now();
-		  mQuickSort<>(m, 0, m.size()-1, std::function<bool(int,int)>(std::greater<>()));		  
+		  mQuickSort<>(m, 0, m.size()-1, &greater);		  
 		  afterS = std::chrono::steady_clock::now();
 		  if (::verbose_d)
 			std::cout << "mquick done! k: " << k << " n: " << n << " in : \033[32m"<< std::chrono::duration_cast<std::chrono::milliseconds>(afterS-beforeS).count() << " swaps: " << ::swaps << " compares: " << ::compares << "\033[0m" <<  std::endl;
